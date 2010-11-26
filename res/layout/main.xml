@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<GridView xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:id="@+id/gridview"
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent"
+    android:columnWidth="90dp"
+    android:numColumns="auto_fit"
+    android:verticalSpacing="10dp"
+    android:horizontalSpacing="10dp"
+    android:stretchMode="columnWidth"
+    android:gravity="center"
+/>
+
+<!-- Old experiments 
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    <TextView
+       android:id="@+id/textview"  
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content" 
+       android:text="@string/hello"
+       />
+	<Gallery
+	    android:id="@+id/gallery"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	/>
+</LinearLayout>
+ -->
+
+<!-- Old experiments 
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+	<TextView
+	   android:id="@+id/textview"  
+	   android:layout_width="wrap_content"
+	   android:layout_height="wrap_content" 
+	   android:text="@string/hello"
+	   />
+	<ImageView
+	   android:id="@+id/imageview"
+	   android:layout_width="wrap_content"
+	   android:layout_height="wrap_content"
+	   />
+</LinearLayout>
+ -->
