@@ -8,7 +8,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.widget.Gallery;
 import android.widget.GridView;
 
 public class HelloAndroid extends Activity {
@@ -31,6 +30,18 @@ public class HelloAndroid extends Activity {
     	super.onStart();
     	
         gallery = (GridView) findViewById(R.id.gridview);
+        
+        /*
+        gallery.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+        	public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+        		Intent i = new Intent();
+        		i.setAction(android.content.Intent.ACTION_VIEW);
+        		i.setDataAndType((Uri) gallery.getAdapter().getItem(0), "image/jpg");
+        		startActivityForResult(i, 0);
+        	}
+        });
+        */
 
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
@@ -85,7 +96,7 @@ public class HelloAndroid extends Activity {
         */        
     }
 
-	protected void setLocation(Location location) {
+	private void setLocation(Location location) {
 		new UpdateLocationTask().execute(location);
 		/*
 		PanoramioImageAdapter a = new PanoramioImageAdapter(this, location);
@@ -94,15 +105,19 @@ public class HelloAndroid extends Activity {
         */
 	}
 	
+	private void setAdapter(PanoramioImageAdapter p) {
+		gallery.setAdapter(p);
+	}
+	
 	private class UpdateLocationTask extends AsyncTask<Location, Void, PanoramioImageAdapter> {
 
 		@Override
 		protected PanoramioImageAdapter doInBackground(Location... locations) {
-			return new PanoramioImageAdapter(HelloAndroid.this, locations[0]);
+			return PanoramioImageAdapter.getAdapter(HelloAndroid.this, locations[0]);
 		}
 		
 		protected void onPostExecute(PanoramioImageAdapter p) {
-			gallery.setAdapter(p);
+			HelloAndroid.this.setAdapter(p);
 		}
 	}
 }

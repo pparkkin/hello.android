@@ -18,42 +18,12 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.os.AsyncTask;
+import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
-
-class WebImage {
-	public String URL;
-	public Drawable thumbnail;
-	
-	public WebImage(String URL) {
-		this.URL = URL;
-	}
-	
-	public void loadThumbnail() {
-		if (thumbnail != null) return;
-		
-		try {
-			InputStream is = (InputStream) fetchURL();
-			Drawable d = Drawable.createFromStream(is, "src");
-			thumbnail = d;
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private Object fetchURL() throws IOException {
-		URL url = new URL(this.URL);
-		Object content = url.getContent();
-		return content;
-	}
-	
-}
 
 public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAdapter {
 	private static final String BASE_URL = "http://www.panoramio.com/map/get_panoramas.php";
@@ -63,34 +33,47 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 	private static final int DEFAULT_TO = 18;
 	private static final double LNG_RANGE = 0.1;
 	private static final double LAT_RANGE = 0.1;
+	private static final PanoramioImageAdapter ADAPTER = new PanoramioImageAdapter();
 	
-	int mGalleryItemBackground;
-	private Context mContext;
-	
-	private List<WebImage> images = new ArrayList<WebImage>();
+	private Context context;
 	private Location location;
+
+	private List<Uri> imageUris = new ArrayList<Uri>(DEFAULT_TO);
+	private List<Drawable> images = new ArrayList<Drawable>(DEFAULT_TO);
 	
-	public PanoramioImageAdapter(Context c, Location l) {
-		if (c == null)
-			return;
-		mContext = c;
+	public static PanoramioImageAdapter getAdapter(Context c, Location l) {
+		ADAPTER.setContext(c);
+		ADAPTER.setLocation(l);
 		
+		return ADAPTER;
+	}
+	
+	private PanoramioImageAdapter() {
+		super();
+	}
+
+	private void setContext(Context c) {
+		if (c == null)
+			throw new IllegalArgumentException("Context is null");
+		context = c;
+	}
+
+	private void setLocation(Location l) {
 		if (l == null)
-			return;
+			throw new IllegalArgumentException("Location is null");
 		this.location = l;
 		
 		loadImages();
-		//new LoadImagesTask().execute(new Void[0]);
 	}
 
 	@Override
 	public int getCount() {
-		return images.size();
+		return imageUris.size();
 	}
 
 	@Override
 	public Object getItem(int position) {
-		return position;
+		return imageUris.get(position);
 	}
 
 	@Override
@@ -100,20 +83,31 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		ImageView i = new ImageView(mContext);
-		Drawable thumbnail = images.get(position).thumbnail;
-		i.setImageDrawable(thumbnail);
-		int size = Math.min(thumbnail.getIntrinsicHeight(),
-		                    thumbnail.getIntrinsicWidth());
-		i.setLayoutParams(new GridView.LayoutParams(size, size));
-		//i.setAdjustViewBounds(true);
-		i.setScaleType(ImageView.ScaleType.CENTER_CROP);
-		i.setPadding(0, 0, 0, 0);
+		Drawable d = images.get(position);
+		if (d == null)
+			return null;
 		
+		ImageView i;
+		
+		if (convertView == null) {
+			i = new ImageView(context);
+			int size = Math.min(d.getIntrinsicHeight(),
+			                    d.getIntrinsicWidth());
+			i.setLayoutParams(new GridView.LayoutParams(size, size));
+			//i.setAdjustViewBounds(true);
+			i.setScaleType(ImageView.ScaleType.CENTER_CROP);
+			i.setPadding(0, 0, 0, 0);
+		} else {
+			i = (ImageView) convertView;
+		}
+		
+		i.setImageDrawable(d);
+
 		return i;
 	}
 
 	private void loadImages() {
+		imageUris.clear();
 		images.clear();
 		
 		double lng = location.getLongitude();
@@ -124,13 +118,18 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 		List<String> urls = fetchImageURLs(q);
 
 		for (String url : urls) {
-			WebImage i = new WebImage(url);
-			i.loadThumbnail();
-			images.add(i);
+			imageUris.add(Uri.parse(url));
+			try {
+				URL u = new URL(url);
+				images.add(HttpGET.fetchDrawable(u));
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
 		}
 		
 	}
 
+	/*
 	private class LoadImagesTask extends AsyncTask<Void, Void, Void> {
 		@Override
 		protected Void doInBackground(Void... params) {
@@ -152,6 +151,7 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 			return null;
 		}
 	}
+	*/
 	
 	private List<String> fetchImageURLs(String q) {
 		JSONArray photos;
