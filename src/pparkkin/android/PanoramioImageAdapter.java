@@ -31,8 +31,8 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 	private static final String DEFAULT_SIZE = "square";
 	private static final int DEFAULT_FROM = 0;
 	private static final int DEFAULT_TO = 18;
-	private static final double LNG_RANGE = 0.1;
-	private static final double LAT_RANGE = 0.1;
+	private static final double LNG_RANGE = 0.005;
+	private static final double LAT_RANGE = 0.005;
 	private static final PanoramioImageAdapter ADAPTER = new PanoramioImageAdapter();
 	
 	private Context context;
@@ -106,9 +106,11 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 		return i;
 	}
 
-	private void loadImages() {
+	synchronized private void loadImages() {
 		imageUris.clear();
 		images.clear();
+		
+		//notifyDataSetInvalidated();
 		
 		double lng = location.getLongitude();
 		double lat = location.getLatitude();
@@ -127,6 +129,7 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 			}
 		}
 		
+		//notifyDataSetChanged();
 	}
 
 	/*

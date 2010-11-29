@@ -3,16 +3,22 @@ package pparkkin.android;
 import java.util.List;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.AdapterView.OnItemClickListener;
 
 public class HelloAndroid extends Activity {
-    private static final float LOCATION_UPDATE_MIN_DISTANCE = (float) 0.01;
-	private static final long LOCATION_UPDATE_MIN_TIME = 0;
+    private static final float LOCATION_UPDATE_MIN_DISTANCE_NETWORK = (float) 0.1;
+	private static final float LOCATION_UPDATE_MIN_DISTANCE_GPS = (float) 0.1;
+	private static final long LOCATION_UPDATE_MIN_TIME = 60000; // 1min (60000ms)
 	
 	//private Gallery gallery;
 	private GridView gallery;
@@ -31,17 +37,28 @@ public class HelloAndroid extends Activity {
     	
         gallery = (GridView) findViewById(R.id.gridview);
         
-        /*
         gallery.setOnItemClickListener(new OnItemClickListener() {
 			@Override
         	public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+				String address = gallery.getAdapter().getItem(position).toString();
+				String u = address.replaceAll("square", "medium");
+        		
+				Intent i = new Intent(HelloAndroid.this, ImageDisplay.class);
+				i.putExtra("url", u);
+				startActivity(i);
+				/*
+				String address = gallery.getAdapter().getItem(position).toString();
+				Uri u = Uri.parse(address.replaceAll("square", "medium"));
+        		//Uri u = (Uri) gallery.getAdapter().getItem(0);
+        		if (u == null) return;
+        		
         		Intent i = new Intent();
         		i.setAction(android.content.Intent.ACTION_VIEW);
-        		i.setDataAndType((Uri) gallery.getAdapter().getItem(0), "image/jpg");
-        		startActivityForResult(i, 0);
+        		i.setData(u);
+        		startActivity(i);
+        		*/
         	}
         });
-        */
 
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
@@ -61,29 +78,33 @@ public class HelloAndroid extends Activity {
         
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
         		                               LOCATION_UPDATE_MIN_TIME,
-        		                               LOCATION_UPDATE_MIN_DISTANCE,
+        		                               LOCATION_UPDATE_MIN_DISTANCE_GPS,
         		                               locationListener);
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
         		                               LOCATION_UPDATE_MIN_TIME,
-        		                               LOCATION_UPDATE_MIN_DISTANCE,
+        		                               LOCATION_UPDATE_MIN_DISTANCE_NETWORK,
         		                               locationListener);
 
-        /* Try to see if we can get a current location without
-         * having to wait for an update
-         */
-        List<String> providers = locationManager.getProviders(true);
-        Location bestLocation = location;
-        for (String p : providers) {
-        	Location l = locationManager.getLastKnownLocation(p);
-        	if (l == null) continue;
-        	if (bestLocation == null) bestLocation = l;
-        	if (l.getAccuracy() < bestLocation.getAccuracy())
-        		bestLocation = l;
+        if (gallery.getAdapter() == null) {
+	        /* Try to see if we can get a current location without
+	         * having to wait for an update
+	         */
+	        List<String> providers = locationManager.getProviders(true);
+	        Location bestLocation = location;
+	        for (String p : providers) {
+	        	Location l = locationManager.getLastKnownLocation(p);
+	        	if (l == null) continue;
+	        	if (bestLocation == null) bestLocation = l;
+	        	if (l.getAccuracy() < bestLocation.getAccuracy())
+	        		bestLocation = l;
+	        }
+	        location = bestLocation;
+	
+	        if (location != null)
+	        	setLocation(location);
+        } else {
+        	gallery.invalidateViews();
         }
-        location = bestLocation;
-
-        if (location != null)
-        	setLocation(location);
         
         
         /* Old experiments
@@ -97,7 +118,7 @@ public class HelloAndroid extends Activity {
     }
 
 	private void setLocation(Location location) {
-		new UpdateLocationTask().execute(location);
+		AsyncTask<Location, Void, PanoramioImageAdapter> t = new UpdateLocationTask().execute(location);
 		/*
 		PanoramioImageAdapter a = new PanoramioImageAdapter(this, location);
 	    
