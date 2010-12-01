@@ -16,26 +16,23 @@ import android.widget.GridView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class HelloAndroid extends Activity {
-    private static final float LOCATION_UPDATE_MIN_DISTANCE_NETWORK = (float) 0.1;
-	private static final float LOCATION_UPDATE_MIN_DISTANCE_GPS = (float) 0.1;
+    private static final float LOCATION_UPDATE_MIN_DISTANCE_NETWORK = (float) 0;
+	private static final float LOCATION_UPDATE_MIN_DISTANCE_GPS = (float) 0;
 	private static final long LOCATION_UPDATE_MIN_TIME = 60000; // 1min (60000ms)
 	
 	//private Gallery gallery;
-	private GridView gallery;
-	private Location location;
+	private static GridView gallery;
+	private static Location location;
+	private static LocationManager locationManager;
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main); // Can't access views before calling setContentView
-    }
-    
-    @Override
-    public void onStart() {
-    	super.onStart();
     	
-        gallery = (GridView) findViewById(R.id.gridview);
+        initGallery();
+        initLocationManager();
         
         gallery.setOnItemClickListener(new OnItemClickListener() {
 			@Override
@@ -46,21 +43,8 @@ public class HelloAndroid extends Activity {
 				Intent i = new Intent(HelloAndroid.this, ImageDisplay.class);
 				i.putExtra("url", u);
 				startActivity(i);
-				/*
-				String address = gallery.getAdapter().getItem(position).toString();
-				Uri u = Uri.parse(address.replaceAll("square", "medium"));
-        		//Uri u = (Uri) gallery.getAdapter().getItem(0);
-        		if (u == null) return;
-        		
-        		Intent i = new Intent();
-        		i.setAction(android.content.Intent.ACTION_VIEW);
-        		i.setData(u);
-        		startActivity(i);
-        		*/
         	}
         });
-
-        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         /* Set up listener to listen to location updates */
         LocationListener locationListener = new LocationListener() {
@@ -84,6 +68,14 @@ public class HelloAndroid extends Activity {
         		                               LOCATION_UPDATE_MIN_TIME,
         		                               LOCATION_UPDATE_MIN_DISTANCE_NETWORK,
         		                               locationListener);
+    }
+
+    @Override
+    public void onStart() {
+    	super.onStart();
+
+    	initGallery();
+        initLocationManager();
 
         if (gallery.getAdapter() == null) {
 	        /* Try to see if we can get a current location without
@@ -105,25 +97,21 @@ public class HelloAndroid extends Activity {
         } else {
         	gallery.invalidateViews();
         }
-        
-        
-        /* Old experiments
-        TextView textView = (TextView) findViewById(R.id.textview);
-        textView.setText("Hey hey hey!");
-        
-        Bitmap image = BitmapFactory.decodeResource(getResources(), R.drawable.leticia0);
-        ImageView imageView = (ImageView) findViewById(R.id.imageview);
-        imageView.setImageBitmap(image);
-        */        
     }
 
+	private void initLocationManager() {
+		if (locationManager == null)
+        	locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+	}
+
+	private void initGallery() {
+		if (gallery == null)
+			gallery = (GridView) findViewById(R.id.gridview);
+	}
+    
 	private void setLocation(Location location) {
 		AsyncTask<Location, Void, PanoramioImageAdapter> t = new UpdateLocationTask().execute(location);
-		/*
-		PanoramioImageAdapter a = new PanoramioImageAdapter(this, location);
-	    
-        gallery.setAdapter(a);
-        */
+		HelloAndroid.location = location;
 	}
 	
 	private void setAdapter(PanoramioImageAdapter p) {
