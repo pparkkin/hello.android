@@ -3,11 +3,11 @@ package pparkkin.android;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -20,10 +20,11 @@ public class HelloAndroid extends Activity {
 	private static final float LOCATION_UPDATE_MIN_DISTANCE_GPS = (float) 0;
 	private static final long LOCATION_UPDATE_MIN_TIME = 60000; // 1min (60000ms)
 	
-	//private Gallery gallery;
 	private static GridView gallery;
 	private static Location location;
 	private static LocationManager locationManager;
+	
+	private static ProgressDialog spinner;
 	
     /** Called when the activity is first created. */
     @Override
@@ -70,35 +71,6 @@ public class HelloAndroid extends Activity {
         		                               locationListener);
     }
 
-    @Override
-    public void onStart() {
-    	super.onStart();
-
-    	initGallery();
-        initLocationManager();
-
-        if (gallery.getAdapter() == null) {
-	        /* Try to see if we can get a current location without
-	         * having to wait for an update
-	         */
-	        List<String> providers = locationManager.getProviders(true);
-	        Location bestLocation = location;
-	        for (String p : providers) {
-	        	Location l = locationManager.getLastKnownLocation(p);
-	        	if (l == null) continue;
-	        	if (bestLocation == null) bestLocation = l;
-	        	if (l.getAccuracy() < bestLocation.getAccuracy())
-	        		bestLocation = l;
-	        }
-	        location = bestLocation;
-	
-	        if (location != null)
-	        	setLocation(location);
-        } else {
-        	gallery.invalidateViews();
-        }
-    }
-
 	private void initLocationManager() {
 		if (locationManager == null)
         	locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -108,14 +80,17 @@ public class HelloAndroid extends Activity {
 		if (gallery == null)
 			gallery = (GridView) findViewById(R.id.gridview);
 	}
-    
+
+	/* Location update using AsyncTask
+	 * I don't like this. It feels to me like there's a big chance of
+	 * a race condition if two updates are executing at the same time.
+	 */
 	private void setLocation(Location location) {
+		if (spinner != null) return;
+		spinner = ProgressDialog.show(HelloAndroid.this, "",
+				  "Loading Images. Please wait...", true);
 		AsyncTask<Location, Void, PanoramioImageAdapter> t = new UpdateLocationTask().execute(location);
 		HelloAndroid.location = location;
-	}
-	
-	private void setAdapter(PanoramioImageAdapter p) {
-		gallery.setAdapter(p);
 	}
 	
 	private class UpdateLocationTask extends AsyncTask<Location, Void, PanoramioImageAdapter> {
@@ -128,5 +103,11 @@ public class HelloAndroid extends Activity {
 		protected void onPostExecute(PanoramioImageAdapter p) {
 			HelloAndroid.this.setAdapter(p);
 		}
+	}
+	
+	private void setAdapter(PanoramioImageAdapter p) {
+		gallery.setAdapter(p);
+		spinner.dismiss();
+		spinner = null;
 	}
 }
