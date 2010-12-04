@@ -1,47 +1,72 @@
 package pparkkin.android;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 public class ImageDisplay extends Activity {
-	public static final int errorImage = R.drawable.bsod;
+	private static final int errorImage = R.drawable.bsod;
+	private static String url = "nourl";
+	private ImageView iV;
+	private TextView tV; 
 	
-	public ImageDisplay() {
-		super();
-	}
+	private static ProgressDialog spinner;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.image); // Can't access views before calling setContentView
         
-        ImageView i = (ImageView) findViewById(R.id.imageview);
-        TextView t = (TextView) findViewById(R.id.textview);
+        iV = (ImageView) findViewById(R.id.imageview);
+        tV = (TextView) findViewById(R.id.textview);
         
         Bundle extras = getIntent().getExtras();
         if (extras == null) {
-        	t.setText("nourl");
-	        i.setImageResource(errorImage);
+        	setImage(null);
         } else {
-        	String u = extras.getString("url");
-        	t.setText("'"+u+"'");
-        	Bitmap b = HttpGET.fetchBitmap(u);
-        	if (b == null) {
-    	        i.setImageResource(errorImage);
-        	} else {
-        		i.setImageBitmap(b);
-        	}
-        	/*
-        	Drawable d = HttpGET.fetchDrawable(u);
-        	if (d == null) {
-    	        i.setImageResource(R.drawable.aitta);
-        	} else {
-        		i.setImageDrawable(d);
-        	}
-        	*/
+        	url = extras.getString("url");
+    		new LoadImageTask().execute(url);
         }
     }
+    
+	private class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
+		protected void onPreExecute() {
+			ImageDisplay.this.showSpinner();
+		}
+
+		@Override
+		protected Bitmap doInBackground(String... urls) {
+        	Bitmap b = HttpGET.fetchBitmap(urls[0]);
+        	return b;
+		}
+		
+		protected void onPostExecute(Bitmap b) {
+			ImageDisplay.this.setImage(b);
+			ImageDisplay.this.dismissSpinner();
+		}
+	}
+
+	public void setImage(Bitmap b) {
+    	tV.setText(url);
+    	
+		if (b == null) {
+	        iV.setImageResource(errorImage);
+	        return;
+		}
+		
+		iV.setImageBitmap(b);
+	}
+
+	public void showSpinner() {
+		spinner = ProgressDialog.show(this, "",
+				  "Loading Image. Please wait...", true);
+	}
+
+	public void dismissSpinner() {
+		spinner.dismiss();
+	}
 }
