@@ -8,8 +8,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,9 +32,9 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 	private static final String DEFAULT_SET = "public";
 	private static final String DEFAULT_SIZE = "square";
 	private static final int DEFAULT_FROM = 0;
-	private static final int DEFAULT_TO = 18;
-	private static final double LNG_RANGE = 0.005;
-	private static final double LAT_RANGE = 0.005;
+	private static final int DEFAULT_TO = 20;
+	private static final double LNG_RANGE = 0.05;
+	private static final double LAT_RANGE = 0.05;
 	
 	private Context context;
 	private Location location;
@@ -45,6 +47,15 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 		
 		setContext(c);
 		setLocation(l);
+	}
+
+	public PanoramioImageAdapter(Context c, Map<Uri, Drawable> images) {
+		setContext(c);
+		
+		for (Uri key : images.keySet()) {
+			imageUris.add(key);
+			this.images.add(images.get(key));
+		}
 	}
 
 	private void setContext(Context c) {
@@ -238,4 +249,14 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
         }
         return sb.toString();
     }
+
+	public Map<Uri, Drawable> getImages() {
+		Map<Uri, Drawable> map = new HashMap<Uri, Drawable>(imageUris.size());
+		
+		for (int i = 0; i < imageUris.size(); ++i) {
+			map.put(imageUris.get(i), images.get(i));
+		}
+		
+		return map;
+	}
 }

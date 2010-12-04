@@ -1,11 +1,15 @@
 package pparkkin.android;
 
+import java.util.Map;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -73,11 +77,26 @@ public class HelloAndroid extends Activity {
         	locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void initGallery() {
 		if (gallery == null)
 			gallery = (GridView) findViewById(R.id.gridview);
+		
+		final Object data = getLastNonConfigurationInstance();
+		
+		if (data == null) return;
+		
+		final Map<Uri, Drawable> images = (Map<Uri, Drawable>) data;
+		PanoramioImageAdapter p = new PanoramioImageAdapter(this, images);
+		setAdapter(p);
 	}
 
+	@Override
+	public Object onRetainNonConfigurationInstance() {
+		final Map<Uri, Drawable> iM = ((PanoramioImageAdapter) gallery.getAdapter()).getImages();
+		return iM;
+	}
+	
 	/* Location update using AsyncTask
 	 * I don't like this. It feels to me like there's a big chance of
 	 * a race condition if two updates are executing at the same time.
@@ -106,12 +125,14 @@ public class HelloAndroid extends Activity {
 		gallery.setAdapter(p);
 	}
 
-	public void showSpinner() {
-		spinner = ProgressDialog.show(HelloAndroid.this, "",
-				  "Loading Images. Please wait...", true);
+	synchronized public void showSpinner() {
+			if (spinner == null || !spinner.isShowing())
+				spinner = ProgressDialog.show(this, "",
+						"Loading Images. Please wait...", true);
 	}
 
-	public void dismissSpinner() {
-		spinner.dismiss();
+	synchronized public void dismissSpinner() {
+			if (spinner != null && spinner.isShowing())
+				spinner.dismiss();
 	}
 }
