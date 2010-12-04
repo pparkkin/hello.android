@@ -33,7 +33,6 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 	private static final int DEFAULT_TO = 18;
 	private static final double LNG_RANGE = 0.005;
 	private static final double LAT_RANGE = 0.005;
-	private static final PanoramioImageAdapter ADAPTER = new PanoramioImageAdapter();
 	
 	private Context context;
 	private Location location;
@@ -41,15 +40,11 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 	private List<Uri> imageUris = new ArrayList<Uri>(DEFAULT_TO);
 	private List<Drawable> images = new ArrayList<Drawable>(DEFAULT_TO);
 	
-	public static PanoramioImageAdapter getAdapter(Context c, Location l) {
-		ADAPTER.setContext(c);
-		ADAPTER.setLocation(l);
-		
-		return ADAPTER;
-	}
-	
-	private PanoramioImageAdapter() {
+	public PanoramioImageAdapter(Context c, Location l) {
 		super();
+		
+		setContext(c);
+		setLocation(l);
 	}
 
 	private void setContext(Context c) {
@@ -106,11 +101,9 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 		return i;
 	}
 
-	synchronized private void loadImages() {
+	private void loadImages() {
 		imageUris.clear();
 		images.clear();
-		
-		//notifyDataSetInvalidated();
 		
 		double lng = location.getLongitude();
 		double lat = location.getLatitude();
@@ -128,33 +121,7 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 				e.printStackTrace();
 			}
 		}
-		
-		//notifyDataSetChanged();
 	}
-
-	/*
-	private class LoadImagesTask extends AsyncTask<Void, Void, Void> {
-		@Override
-		protected Void doInBackground(Void... params) {
-			images.clear();
-			
-			double lng = location.getLongitude();
-			double lat = location.getLatitude();
-			
-			String q = buildQuery(lng-0.01, lat-0.01,
-					              lng+0.01, lat+0.01);
-			List<String> urls = fetchImageURLs(q);
-
-			for (String url : urls) {
-				WebImage i = new WebImage(url);
-				i.loadThumbnail();
-				images.add(i);
-			}
-			
-			return null;
-		}
-	}
-	*/
 	
 	private List<String> fetchImageURLs(String q) {
 		JSONArray photos;

@@ -1,7 +1,5 @@
 package pparkkin.android;
 
-import java.util.List;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -21,7 +19,6 @@ public class HelloAndroid extends Activity {
 	private static final long LOCATION_UPDATE_MIN_TIME = 60000; // 1min (60000ms)
 	
 	private static GridView gallery;
-	private static Location location;
 	private static LocationManager locationManager;
 	
 	private static ProgressDialog spinner;
@@ -86,28 +83,35 @@ public class HelloAndroid extends Activity {
 	 * a race condition if two updates are executing at the same time.
 	 */
 	private void setLocation(Location location) {
-		if (spinner != null) return;
-		spinner = ProgressDialog.show(HelloAndroid.this, "",
-				  "Loading Images. Please wait...", true);
-		AsyncTask<Location, Void, PanoramioImageAdapter> t = new UpdateLocationTask().execute(location);
-		HelloAndroid.location = location;
+		new UpdateLocationTask().execute(location);
 	}
 	
 	private class UpdateLocationTask extends AsyncTask<Location, Void, PanoramioImageAdapter> {
+		protected void onPreExecute() {
+			HelloAndroid.this.showSpinner();
+		}
 
 		@Override
 		protected PanoramioImageAdapter doInBackground(Location... locations) {
-			return PanoramioImageAdapter.getAdapter(HelloAndroid.this, locations[0]);
+			return new PanoramioImageAdapter(HelloAndroid.this, locations[0]);
 		}
 		
 		protected void onPostExecute(PanoramioImageAdapter p) {
 			HelloAndroid.this.setAdapter(p);
+			HelloAndroid.this.dismissSpinner();
 		}
 	}
 	
 	private void setAdapter(PanoramioImageAdapter p) {
 		gallery.setAdapter(p);
+	}
+
+	public void showSpinner() {
+		spinner = ProgressDialog.show(HelloAndroid.this, "",
+				  "Loading Images. Please wait...", true);
+	}
+
+	public void dismissSpinner() {
 		spinner.dismiss();
-		spinner = null;
 	}
 }
