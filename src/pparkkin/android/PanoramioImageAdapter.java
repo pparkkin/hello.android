@@ -33,8 +33,8 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 	private static final String DEFAULT_SIZE = "square";
 	private static final int DEFAULT_FROM = 0;
 	private static final int DEFAULT_TO = 20;
-	private static final double LNG_RANGE = 0.05;
-	private static final double LAT_RANGE = 0.05;
+	private static final double LNG_RANGE = 0.01;
+	private static final double LAT_RANGE = 0.01;
 	
 	private Context context;
 	private Location location;

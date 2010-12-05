@@ -1,5 +1,6 @@
 package pparkkin.android;
 
+import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
@@ -7,7 +8,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -18,14 +18,11 @@ import android.widget.GridView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class HelloAndroid extends Activity {
-    private static final float LOCATION_UPDATE_MIN_DISTANCE_NETWORK = (float) 0;
-	private static final float LOCATION_UPDATE_MIN_DISTANCE_GPS = (float) 0;
-	private static final long LOCATION_UPDATE_MIN_TIME = 60000; // 1min (60000ms)
-	
 	private static GridView gallery;
 	private static LocationManager locationManager;
 	
 	private static ProgressDialog spinner;
+	private Location location;
 	
     /** Called when the activity is first created. */
     @Override
@@ -47,31 +44,27 @@ public class HelloAndroid extends Activity {
 				startActivity(i);
         	}
         });
+    	
+    	if (location == null) {
+	    	// get a current location
+	        List<String> providers = locationManager.getProviders(true);
+	        
+	        Location bestLocation = null;
+	        
+	        for (String p : providers) {
+	        	Location l = locationManager.getLastKnownLocation(p);
+	        	if (l == null) continue;
+	        	if (bestLocation == null) bestLocation = l;
+	        	if (l.getAccuracy() < bestLocation.getAccuracy())
+	        		bestLocation = l;
+	        }
+	
+	        if (bestLocation != null)
+	        	setLocation(bestLocation);
+    	}
 
-        /* Set up listener to listen to location updates */
-        LocationListener locationListener = new LocationListener() {
-        	public void onLocationChanged(Location location) {
-        		// Called when a new location is found by the network location provider.
-                HelloAndroid.this.setLocation(location);
-        	}
-
-			public void onStatusChanged(String provider, int status, Bundle extras) {}
-
-        	public void onProviderEnabled(String provider) {}
-
-        	public void onProviderDisabled(String provider) {}
-        };
-        
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-        		                               LOCATION_UPDATE_MIN_TIME,
-        		                               LOCATION_UPDATE_MIN_DISTANCE_GPS,
-        		                               locationListener);
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-        		                               LOCATION_UPDATE_MIN_TIME,
-        		                               LOCATION_UPDATE_MIN_DISTANCE_NETWORK,
-        		                               locationListener);
     }
-
+    
 	private void initLocationManager() {
 		if (locationManager == null)
         	locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -103,6 +96,7 @@ public class HelloAndroid extends Activity {
 	 */
 	private void setLocation(Location location) {
 		new UpdateLocationTask().execute(location);
+		this.location = location;
 	}
 	
 	private class UpdateLocationTask extends AsyncTask<Location, Void, PanoramioImageAdapter> {
