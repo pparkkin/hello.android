@@ -132,7 +132,9 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 		double maxx = lng+LNG_RANGE;
 		double maxy = lat+LAT_RANGE;
 		
-		for (Panorama p : Panoramio.getPanoramas(DEFAULT_SET, DEFAULT_SIZE, minx, miny, maxx, maxy, DEFAULT_FROM, DEFAULT_TO, false))
+		List<Panorama> ps = Panoramio.getPanoramas(DEFAULT_SET, DEFAULT_SIZE, minx, miny, maxx, maxy, DEFAULT_FROM, DEFAULT_TO, false); 
+		
+		for (Panorama p : ps)
 		{
 			urls.add(p.photoFileUrl);
 		}

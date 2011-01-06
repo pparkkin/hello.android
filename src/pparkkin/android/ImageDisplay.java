@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,25 +31,28 @@ public class ImageDisplay extends Activity {
         
         Bundle extras = getIntent().getExtras();
         if (extras == null) {
-        	setImage(null);
+        	setText("Image information not found");
+        	setErrorImage();
         } else {
         	url = extras.getString("url");
     		new LoadImageTask().execute(url);
         }
     }
     
-	private class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
+	private class LoadImageTask extends AsyncTask<String, Void, Drawable> {
 		private Exception error;
 		protected void onPreExecute() {
 			ImageDisplay.this.showSpinner();
 		}
 
 		@Override
-		protected Bitmap doInBackground(String... urls) {
-        	Bitmap b = null;
+		protected Drawable doInBackground(String... urls) {
+        	//Bitmap b = null;
+			Drawable d = null;
         	
 			try {
-				b = HttpGET.fetchBitmap(urls[0]);
+				//b = HttpGET.fetchBitmap(urls[0]);
+				d = HttpGET.fetchDrawable(urls[0]);
 			} catch (MalformedURLException e) {
 				error = e;
 				Log.e("Hello.Android", e.getMessage());
@@ -57,10 +61,11 @@ public class ImageDisplay extends Activity {
 				Log.e("Hello.Android", e.getMessage());
 			}
 			
-        	return b;
+        	//return b;
+			return d;
 		}
 		
-		protected void onPostExecute(Bitmap b) {
+		protected void onPostExecute(Drawable b) {
 			ImageDisplay.this.setImage(b);
 			if (error != null)
 				ImageDisplay.this.setText(error.getMessage());
@@ -70,15 +75,28 @@ public class ImageDisplay extends Activity {
 
 	public void setImage(Bitmap b) {    	
 		if (b == null) {
-	        iV.setImageResource(errorImage);
+	        setErrorImage();
 	        return;
 		}
 		
 		iV.setImageBitmap(b);
 	}
 
+	private void setErrorImage() {
+		iV.setImageResource(errorImage);
+	}
+
+	public void setImage(Drawable d) {    	
+		if (d == null) {
+	        setErrorImage();
+	        return;
+		}
+		
+		iV.setImageDrawable(d);
+	}
+
 	public void setText(String message) {
-    	tV.setText(url);
+    	tV.setText(message);
 	}
 
 	public void showSpinner() {

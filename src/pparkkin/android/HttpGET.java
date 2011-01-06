@@ -30,6 +30,10 @@ public class HttpGET {
 		
 		InputStream is = fetchStream(url);
 		d = Drawable.createFromStream(is, "src");
+		if (d == null)
+			throw new IOException("Unable to decode stream");
+		
+		is.close();
 		
 		return d;
 	}
@@ -48,6 +52,9 @@ public class HttpGET {
 
         in = fetchStream(url);
         bitmap = BitmapFactory.decodeStream(in);
+        if (bitmap == null)
+        	throw new IOException("Unable to decode stream");
+        
         in.close();
             
         return bitmap;                

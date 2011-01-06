@@ -25,7 +25,7 @@ public class Panoramio {
 	
 	public static class Panorama {
 		public final String photoId;
-		public final String title;
+		public final String photoTitle;
 		public final String photoUrl;
 		public final String photoFileUrl;
 		public final double longitude;
@@ -48,7 +48,7 @@ public class Panoramio {
 				String ownerUrl)
 		{
 			this.photoId      = photoId;
-			this.title        = title;
+			this.photoTitle        = title;
 			this.photoUrl     = photoUrl;
 			this.photoFileUrl = photoFileUrl;
 			this.longitude    = longitude;
@@ -82,8 +82,9 @@ public class Panoramio {
 		for (int i = 0; i < photos.length(); i++) {
 			try {
 				JSONObject j = photos.getJSONObject(i);
+
 				Panorama p = new Panorama(j.getString("photo_id"),
-						j.getString("title"),
+						j.getString("photo_title"),
 						j.getString("photo_url"),
 						j.getString("photo_file_url"),
 						j.getDouble("longitude"),
