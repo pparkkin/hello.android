@@ -15,15 +15,18 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class HelloAndroid extends Activity {
+	private static TextView textView;
 	private static GridView gallery;
 	private static LocationManager locationManager;
 	
@@ -34,7 +37,8 @@ public class HelloAndroid extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main); // Can't access views before calling setContentView
-    	
+
+        textView = (TextView) findViewById(R.id.main_textview);
         initGallery();
         initLocationManager();
         
@@ -125,26 +129,32 @@ public class HelloAndroid extends Activity {
 	}
 	
 	private class UpdateLocationTask extends AsyncTask<Location, Void, PanoramioImageAdapter> {
+		private Exception error;
+		
 		protected void onPreExecute() {
 			HelloAndroid.this.showSpinner();
 		}
 
 		@Override
 		protected PanoramioImageAdapter doInBackground(Location... locations) {
+			PanoramioImageAdapter p = null;
+			
 			try {
-				return new PanoramioImageAdapter(HelloAndroid.this, locations[0]);
+				p = new PanoramioImageAdapter(HelloAndroid.this, locations[0]);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				error = e;
+				Log.e("Hello.Android", e.getMessage());
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				error = e;
+				Log.e("Hello.Android", e.getMessage());
 			}
 			
-			return null;
+			return p;
 		}
 		
 		protected void onPostExecute(PanoramioImageAdapter p) {
+			if (error != null)
+				HelloAndroid.this.setText(error.getMessage());
 			HelloAndroid.this.setAdapter(p);
 			HelloAndroid.this.dismissSpinner();
 		}
@@ -152,6 +162,10 @@ public class HelloAndroid extends Activity {
 	
 	private void setAdapter(PanoramioImageAdapter p) {
 		gallery.setAdapter(p);
+	}
+
+	public void setText(String message) {
+		textView.setText(message);
 	}
 
 	synchronized public void showSpinner() {

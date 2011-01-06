@@ -6,7 +6,7 @@
     android:layout_height="fill_parent"
     >
     <TextView
-       android:id="@+id/textview"  
+       android:id="@+id/image_textview"  
        android:layout_width="wrap_content"
        android:layout_height="wrap_content" 
        />

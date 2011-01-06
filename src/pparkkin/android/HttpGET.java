@@ -18,54 +18,38 @@ import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 public class HttpGET {
-	public static Drawable fetchDrawable(String url) {
+	public static Drawable fetchDrawable(String url) throws MalformedURLException, IOException {
 		Drawable d = null;
 		
-		try {
-			d = fetchDrawable(new URL(url));
-		} catch (MalformedURLException e) {
-			Log.e("Hello.Android", "Got url: "+url, e);
-		}
+		d = fetchDrawable(new URL(url));
 		
 		return d;
 	}
-	public static Drawable fetchDrawable(URL url) {
+	public static Drawable fetchDrawable(URL url) throws IOException {
 		Drawable d = null;
 		
-		try {
-			InputStream is = fetchStream(url);
-			d = Drawable.createFromStream(is, "src");
-		} catch (MalformedURLException e) {
-			Log.e("Hello.Android", "Got url: "+url, e);
-		} catch (IOException e) {
-			Log.e("Hello.Android", "Got url: "+url, e);
-		}
+		InputStream is = fetchStream(url);
+		d = Drawable.createFromStream(is, "src");
 		
 		return d;
 	}
 
-	public static Bitmap fetchBitmap(String url) {
+	public static Bitmap fetchBitmap(String url) throws MalformedURLException, IOException {
 		Bitmap b = null;
 		
-		try {
-			b = fetchBitmap(new URL(url));
-		} catch (MalformedURLException e) {
-			Log.e("Hello.Android", "Got url: "+url, e);
-		}
+		b = fetchBitmap(new URL(url));
 		
 		return b;
 	}
-    public static Bitmap fetchBitmap(URL url)
+    public static Bitmap fetchBitmap(URL url) throws IOException
     {        
         Bitmap bitmap = null;
         InputStream in = null;        
-        try {
-            in = fetchStream(url);
-            bitmap = BitmapFactory.decodeStream(in);
-            in.close();
-        } catch (IOException e) {
-			Log.e("Hello.Android", "Got url: "+url, e);
-        }
+
+        in = fetchStream(url);
+        bitmap = BitmapFactory.decodeStream(in);
+        in.close();
+            
         return bitmap;                
     }
     
@@ -96,17 +80,18 @@ public class HttpGET {
         StringBuilder sb = new StringBuilder();
  
         String line = null;
+        
         try {
             while ((line = reader.readLine()) != null) {
                 sb.append(line + "\n");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("Hello.Android", e.getMessage());
         } finally {
             try {
                 is.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e("Hello.Android", e.getMessage());
             }
         }
         return sb.toString();
@@ -121,27 +106,17 @@ public class HttpGET {
         if (!(conn instanceof HttpURLConnection))                     
             throw new IOException("Not an HTTP connection");
 
-        try{
-            HttpURLConnection httpConn = (HttpURLConnection) conn;
-            httpConn.setAllowUserInteraction(false);
-            httpConn.setInstanceFollowRedirects(true);
-            httpConn.setRequestMethod("GET");
-            httpConn.connect(); 
-
-            response = httpConn.getResponseCode();                 
-            if (response == HttpURLConnection.HTTP_OK) {
-                in = httpConn.getInputStream();                                 
-            }                     
-        }
-        catch (Exception ex)
-        {
-            throw new IOException("Error connecting");            
-        }
-        return in;
+        HttpURLConnection httpConn = (HttpURLConnection) conn;
+        httpConn.setAllowUserInteraction(false);
+        httpConn.setInstanceFollowRedirects(true);
+        httpConn.setRequestMethod("GET");
+        httpConn.connect(); 
         
-        /*
-		InputStream content = (InputStream) url.getContent();
-		return content;
-		*/
+        response = httpConn.getResponseCode();                 
+        if (response == HttpURLConnection.HTTP_OK) {
+        	in = httpConn.getInputStream();                                 
+        }
+            
+        return in;
 	}
 }
