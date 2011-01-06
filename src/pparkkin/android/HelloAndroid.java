@@ -1,7 +1,10 @@
 package pparkkin.android;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
+import org.json.JSONException;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -12,6 +15,9 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -22,9 +28,8 @@ public class HelloAndroid extends Activity {
 	private static LocationManager locationManager;
 	
 	private static ProgressDialog spinner;
-	private Location location;
 	
-    /** Called when the activity is first created. */
+	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,26 +50,47 @@ public class HelloAndroid extends Activity {
         	}
         });
     	
-    	if (location == null) {
-	    	// get a current location
-	        List<String> providers = locationManager.getProviders(true);
-	        
-	        Location bestLocation = null;
-	        
-	        for (String p : providers) {
-	        	Location l = locationManager.getLastKnownLocation(p);
-	        	if (l == null) continue;
-	        	if (bestLocation == null) bestLocation = l;
-	        	if (l.getAccuracy() < bestLocation.getAccuracy())
-	        		bestLocation = l;
-	        }
-	
-	        if (bestLocation != null)
-	        	setLocation(bestLocation);
-    	}
+    	updateLocation();
 
     }
+
+	private void updateLocation() {
+    	// get a current location
+        List<String> providers = locationManager.getProviders(true);
+        
+        Location bestLocation = null;
+        
+        for (String p : providers) {
+        	Location l = locationManager.getLastKnownLocation(p);
+        	if (l == null) continue;
+        	if (bestLocation == null) bestLocation = l;
+        	if (l.getAccuracy() < bestLocation.getAccuracy())
+        		bestLocation = l;
+        }
+
+        if (bestLocation != null)
+        	setLocation(bestLocation);
+	}
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+    	MenuInflater mI = getMenuInflater();
+    	mI.inflate(R.menu.main_options, menu);
+    	return true;
+    }
     
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+        case R.id.refresh:
+            updateLocation();
+            return true;
+        default:
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
 	private void initLocationManager() {
 		if (locationManager == null)
         	locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -96,7 +122,6 @@ public class HelloAndroid extends Activity {
 	 */
 	private void setLocation(Location location) {
 		new UpdateLocationTask().execute(location);
-		this.location = location;
 	}
 	
 	private class UpdateLocationTask extends AsyncTask<Location, Void, PanoramioImageAdapter> {
@@ -106,7 +131,17 @@ public class HelloAndroid extends Activity {
 
 		@Override
 		protected PanoramioImageAdapter doInBackground(Location... locations) {
-			return new PanoramioImageAdapter(HelloAndroid.this, locations[0]);
+			try {
+				return new PanoramioImageAdapter(HelloAndroid.this, locations[0]);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return null;
 		}
 		
 		protected void onPostExecute(PanoramioImageAdapter p) {
