@@ -4,11 +4,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.URI;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,14 +25,15 @@ public class HttpGET {
 	public static Drawable fetchDrawable(String url) throws MalformedURLException, IOException {
 		Drawable d = null;
 		
-		d = fetchDrawable(new URL(url));
+		d = fetchDrawable(URI.create(url));
 		
 		return d;
 	}
-	public static Drawable fetchDrawable(URL url) throws IOException {
+	
+	public static Drawable fetchDrawable(URI uri) throws IOException {
 		Drawable d = null;
 		
-		InputStream is = fetchStream(url);
+		InputStream is = fetchStream(uri);
 		d = Drawable.createFromStream(is, "src");
 		if (d == null)
 			throw new IOException("Unable to decode stream");
@@ -41,16 +46,16 @@ public class HttpGET {
 	public static Bitmap fetchBitmap(String url) throws MalformedURLException, IOException {
 		Bitmap b = null;
 		
-		b = fetchBitmap(new URL(url));
+		b = fetchBitmap(URI.create(url));
 		
 		return b;
 	}
-    public static Bitmap fetchBitmap(URL url) throws IOException
+    public static Bitmap fetchBitmap(URI uri) throws IOException
     {        
         Bitmap bitmap = null;
         InputStream in = null;        
 
-        in = fetchStream(url);
+        in = fetchStream(uri);
         bitmap = BitmapFactory.decodeStream(in);
         if (bitmap == null)
         	throw new IOException("Unable to decode stream");
@@ -62,14 +67,14 @@ public class HttpGET {
     
     public static JSONObject fetchJSONObject(String url) throws IOException, JSONException
     {
-    	return fetchJSONObject(new URL(url));
+    	return fetchJSONObject(URI.create(url));
     }
     
-    public static JSONObject fetchJSONObject(URL url) throws IOException, JSONException
+    public static JSONObject fetchJSONObject(URI uri) throws IOException, JSONException
     {
 		JSONObject result;
 		
-		InputStream is = fetchStream(url);
+		InputStream is = fetchStream(uri);
 		String jsonString = convertStreamToString(is);
 		result = new JSONObject(jsonString);
 		
@@ -77,12 +82,10 @@ public class HttpGET {
     }
     
     private static String convertStreamToString(InputStream is) {
-        /*
-         * To convert the InputStream to String we use the BufferedReader.readLine()
-         * method. We iterate until the BufferedReader return null which means
-         * there's no more data to read. Each line will appended to a StringBuilder
-         * and returned as String.
-         */
+        // To convert the InputStream to String we use the BufferedReader.readLine()
+        // method. We iterate until the BufferedReader return null which means
+        // there's no more data to read. Each line will appended to a StringBuilder
+        // and returned as String.
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
  
@@ -104,26 +107,16 @@ public class HttpGET {
         return sb.toString();
     }
 
-	private static InputStream fetchStream(URL url) throws IOException {
-        InputStream in = null;
-        int response = -1;
-
-        URLConnection conn = url.openConnection();
-
-        if (!(conn instanceof HttpURLConnection))                     
-            throw new IOException("Not an HTTP connection");
-
-        HttpURLConnection httpConn = (HttpURLConnection) conn;
-        httpConn.setAllowUserInteraction(false);
-        httpConn.setInstanceFollowRedirects(true);
-        httpConn.setRequestMethod("GET");
-        httpConn.connect(); 
-        
-        response = httpConn.getResponseCode();                 
-        if (response == HttpURLConnection.HTTP_OK) {
-        	in = httpConn.getInputStream();                                 
-        }
-            
-        return in;
+	private static InputStream fetchStream(URI uri) throws IOException {
+		// fixed
+		// thanks to
+		//  http://stackoverflow.com/questions/4414839/bitmapfactory-decodestream-returns-null-without-exception
+	    HttpGet httpRequest = new HttpGet(uri);
+	    HttpClient httpclient = new DefaultHttpClient();
+	    HttpResponse response = (HttpResponse) httpclient.execute(httpRequest);
+	    HttpEntity entity = response.getEntity();
+	    BufferedHttpEntity bufHttpEntity = new BufferedHttpEntity(entity);
+	    InputStream instream = bufHttpEntity.getContent();
+	    return instream;
 	}
 }

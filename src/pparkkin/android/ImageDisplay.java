@@ -47,11 +47,9 @@ public class ImageDisplay extends Activity {
 
 		@Override
 		protected Drawable doInBackground(String... urls) {
-        	//Bitmap b = null;
 			Drawable d = null;
         	
 			try {
-				//b = HttpGET.fetchBitmap(urls[0]);
 				d = HttpGET.fetchDrawable(urls[0]);
 			} catch (MalformedURLException e) {
 				error = e;
@@ -61,7 +59,6 @@ public class ImageDisplay extends Activity {
 				Log.e("Hello.Android", e.getMessage());
 			}
 			
-        	//return b;
 			return d;
 		}
 		

@@ -2,7 +2,6 @@ package pparkkin.android;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -117,8 +116,7 @@ public class PanoramioImageAdapter extends BaseAdapter {// implements SpinnerAda
 		for (String url : urls) {
 			imageUris.add(Uri.parse(url));
 			try {
-				URL u = new URL(url);
-				images.add(HttpGET.fetchDrawable(u));
+				images.add(HttpGET.fetchDrawable(url));
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
